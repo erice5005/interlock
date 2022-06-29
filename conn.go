@@ -1,6 +1,7 @@
 package interlock
 
 import (
+	"bufio"
 	"io"
 	"log"
 	"net"
@@ -25,27 +26,32 @@ func newByteReaderStream(r io.Reader, size int) (<-chan []byte, <-chan error) {
 
 	ch := make(chan ([]byte))
 	errChan := make(chan error)
+	buf := bufio.NewReader(r)
 	go func() {
+		// for {
+
+		// inBuf := make([]byte, size)
+		// s := 0
+		// inner:
 		for {
-			inBuf := make([]byte, size)
-			s := 0
-		inner:
-			for {
-				n, err := r.Read(inBuf[s:])
-				if n > 0 {
-					ch <- inBuf[s : s+n]
-					s += n
-				}
-				if err != nil {
-					log.Printf("Read Err: %v\n", err)
-					errChan <- err
-					return
-				}
-				if s >= len(inBuf) {
-					break inner
-				}
+			message, err := buf.ReadString('\n')
+			// n, err := r.Rea
+			// n, err := r.Read(inBuf[s:])
+			// if n > 0 {
+			// 	ch <- inBuf[s : s+n]
+			// 	s += n
+			// }
+			if err != nil {
+				log.Printf("Read Err: %v\n", err)
+				errChan <- err
+				return
 			}
+			ch <- []byte(message)
+			// if s >= len(inBuf) {
+			// 	break inner
+			// }
 		}
+		// }
 	}()
 	return ch, errChan
 }

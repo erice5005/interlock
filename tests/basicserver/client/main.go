@@ -33,6 +33,10 @@ func main() {
 			nx.WriteTo("", interlock.DATA, "Hello")
 		}
 	}()
+	go func() {
+		time.Sleep(10 * time.Second)
+		nx.WriteTo("", interlock.DISCONNECT, nil)
+	}()
 	log.Printf("Start Client\n")
 	nx.Run()
 	log.Printf("end client\n")
