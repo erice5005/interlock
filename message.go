@@ -1,7 +1,9 @@
 package interlock
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 )
@@ -26,7 +28,20 @@ type DataFrame struct {
 const DELIM byte = '\n'
 
 func (df *DataFrame) ToBytes() []byte {
-	buf, _ := json.Marshal(df)
+	var b64 string
+	if df.Content != nil {
+		b64 = base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%v", df.Content)))
+
+	}
+
+	sendFrame := DataFrame{
+		SrcID:   df.SrcID,
+		Kind:    df.Kind,
+		Content: b64,
+		Created: df.Created,
+	}
+
+	buf, _ := json.Marshal(sendFrame)
 	buf = append(buf, DELIM) //Customized Delimiter
 	return buf
 }
@@ -39,6 +54,17 @@ func ParseDataFrame(raw []byte) *DataFrame {
 		log.Printf("Parse out: %v\n", err)
 		return &DataFrame{}
 	}
+
+	if out.Content != nil {
+		cleanContent, err := base64.StdEncoding.DecodeString(out.Content.(string))
+		if err != nil {
+			log.Printf("b64 decode err: %v\n", err)
+
+		} else {
+			out.Content = string(cleanContent)
+		}
+	}
+
 	return out
 }
 

@@ -36,7 +36,7 @@ func main() {
 	sx.Link()
 	go func() {
 		for msg := range sx.Read() {
-			log.Printf("SX Got: %v\n", msg)
+			log.Printf("SX Got: %v, %v\n", msg, msg.Content)
 		}
 	}()
 	// go func() {
